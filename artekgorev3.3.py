@@ -1,41 +1,37 @@
 import cv2
 import numpy as np
 
-image_path = "para3.jpg"
-original = cv2.imread(image_path)
+img = cv2.imread("para3.jpg")
+olcek_yuzde = 40
+genislik = int(img.shape[1] * olcek_yuzde / 100)
+yukseklik = int(img.shape[0] * olcek_yuzde / 100)
+boyut = (genislik, yukseklik)
+resized = cv2.resize(img, boyut, interpolation=cv2.INTER_AREA)
 
-gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
-blur = cv2.GaussianBlur(gray, (11, 11), 0)
-
-dp = 1.1
-minDist = 45
-param1 = 90
-param2 = 48
-minRadius = 35
-maxRadius = 75
-
-output = original.copy()
+gri = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+gri = cv2.GaussianBlur(gri, (9, 9), 2)
 
 circles = cv2.HoughCircles(
-    blur,
+    gri,
     cv2.HOUGH_GRADIENT,
-    dp,
-    minDist,
-    param1=param1,
-    param2=param2,
-    minRadius=minRadius,
-    maxRadius=maxRadius
+    dp=1.2,
+    minDist=90,
+    param1=100,
+    param2=60,
+    minRadius=65,
+    maxRadius=115
 )
 
+sayi = 0
 if circles is not None:
     circles = np.uint16(np.around(circles))
-    for i in circles[0, :]:
-        cv2.circle(output, (i[0], i[1]), i[2], (0, 255, 0), 2)  # sadece yeşil kontür
-    count = len(circles[0])
-    print(f"Algılanan para sayısı: {count}")
-else:
-    print("Hiç para algılanamadı.")
+    for (x, y, r) in circles[0, :]:
+        cv2.circle(resized, (x, y), r, (0, 255, 0), 3)
+        sayi += 1
 
-cv2.imshow("Coin Detector", output)
+# Görüntüye yazı eklenmeden sadece konsola yazdır
+print(f"Para Sayısı: {sayi}")
+
+cv2.imshow("Sonuc", resized)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
